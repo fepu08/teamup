@@ -12,3 +12,6 @@ Login után lehet
 - csapatot törölni
 - embert kirúgni
 - csapat nevet módosítani
+
+### Design
+https://github.com/Fagyesz/H-v-k
