@@ -1,5 +1,5 @@
-#Csapat menedzsment
-
+# Leírás
+### Csapat menedzsment
 pulbikus oldal:
 - rövid leírás az appról
 - Register
