@@ -1,4 +1,4 @@
-Csapat menedzsment
+#Csapat menedzsment
 
 pulbikus oldal:
 - rövid leírás az appról
