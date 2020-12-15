@@ -12,6 +12,7 @@ app.use(express.json({extended: false})); // allow us to get data w request.body
 app.get('/', (request, response) => response.send('API Running'));
 
 // Define routes
+app.use('/api/auth', require('./routes/api/auth'));
 app.use('/api/users', require('./routes/api/users'));
 app.use('/api/profile', require('./routes/api/profile'));
 app.use('/api/teams', require('./routes/api/teams'));
