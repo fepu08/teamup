@@ -19,7 +19,8 @@ const ProfileSchema = new mongoose.Schema({
     }
   ],
   githubusername: {
-    type: String
+    type: String,
+    unique: true
   },
   social: {
     youtube: {
