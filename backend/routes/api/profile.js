@@ -5,6 +5,7 @@ const Profile = require('../../models/Profile');
 const User = require('../../models/User');
 const Team = require('../../models/Team')
 const { check, validationResult } = require('express-validator');
+const normalize = require('normalize-url');
 
 // @route   GET api/profile/me
 // @desc    Get current users profile
@@ -60,32 +61,43 @@ router.post('/',
       // Build profile object
       const profileFields =  {};
       profileFields.user = request.user.id;
-      if(0) profileFields.githubusername = githubusername;
       if(skills) profileFields.skills = skills.split(',').map(skill => skill.trim());
+      if(githubusername) profileFields.githubusername = githubusername;
 
       profileFields.location = {};
       if(address) profileFields.location.address = address;
       if(city) profileFields.location.city = city;
       if(country) profileFields.location.country = country;
 
-      profileFields.social = {};
-      if(youtube) profileFields.social.youtube = youtube;
-      if(twitter) profileFields.social.twitter = twitter;
-      if(facebook) profileFields.social.facebook = facebook;
-      if(linkedin) profileFields.social.linkeding = linkedin;
-      if(instagram) profileFields.social.instagram = instagram;
+      const socialFields = {youtube, twitter, facebook, linkedin, instagram};
+      // normalize social fields to ensure valid url
+      for (const [key, value] of Object.entries(socialFields)) {
+        if (value && value.length > 0)
+          socialFields[key] = normalize(value, {forceHttps: true});
+      }
+      profileFields.social = socialFields;
 
-      if(teams) profileFields.teams = teams.split(',').map(team => team.trim());
+      if(teams) {
+        profileFields.teams = teams.split(',').map(team => team.trim());
+      }
 
       try {
         //check teams are exist
-        let badTeams = [];
-        for (const team of profileFields.teams) {
-          let actual = await Team.findOne({name: team}).exec();
-          if (!actual) badTeams.push(team);
+        if(teams) {
+          let badTeams = [];
+          for (const team of profileFields.teams) {
+            let actual = await Team.findOne({name: team}).exec();
+            if (!actual) badTeams.push(team);
+          }
+          if (badTeams.length > 0) {
+            return response.status(400).json({errors: [{msg: "Teams do not exist with name: " + badTeams}]});
+          }
         }
-        if (badTeams.length > 0) {
-          return response.status(400).json({errors: [{msg: "Teams do not exist with name: " + badTeams}]});
+
+        // Check Github Username Taken
+        if(profileFields.githubusername){
+          let user = await User.findOne({ githubusername: profileFields.githubusername });
+          if(user) return response.status(400).json({ errors: [{ msg: 'User already exists with this github username' }] });
         }
 
         // Check profile exists
@@ -95,12 +107,10 @@ router.post('/',
           profile = await Profile.findOneAndUpdate(
               {user: request.user.id},
               {$set: profileFields},
-              {new: true}
+              {new: true, upsert: true, setDefaultsOnInsert: true}
           );
         } else {
           // Create
-          let user = await User.findOne({ githubusername });
-          if(user) return response.status(400).json({ errors: [{ msg: 'User already exists with this github username' }] });
           profile = new Profile(profileFields);
         }
         await profile.save();

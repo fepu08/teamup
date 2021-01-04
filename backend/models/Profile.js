@@ -24,7 +24,8 @@ const ProfileSchema = new mongoose.Schema({
   },
   githubusername: {
     type: String,
-    unique: true
+    unique: true,
+    sparse: true
   },
   social: {
     youtube: {
