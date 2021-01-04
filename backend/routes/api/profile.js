@@ -3,6 +3,7 @@ const router = express.Router();
 const auth = require('../../middleware/auth');
 const Profile = require('../../models/Profile');
 const User = require('../../models/User');
+const Team = require('../../models/Team')
 const { check, validationResult } = require('express-validator');
 
 // @route   GET api/profile/me
@@ -31,18 +32,17 @@ router.get('/me', auth, async (request, response) => {
 router.post('/',
     [
         auth,
-      [
         // if you have required fields you should check them here
         //like
         // check('name', 'Name is required').not().isEmpty()
-          check('skills', 'Skills are required').not().isEmpty()
-      ]
+        check('skills', 'Skills are required').notEmpty()
     ],
     async (request, response) => {
       const errors = validationResult(request);
       if(!errors.isEmpty()){
         return response.status(400).json({errors: errors.array()});
       }
+
 
       const {
         address,
@@ -54,13 +54,14 @@ router.post('/',
         twitter,
         facebook,
         linkedin,
-        instagram
+        instagram,
+        teams
       } = request.body;
 
       // Build profile object
       const profileFields =  {};
       profileFields.user = request.user.id;
-      if(githubusername) profileFields.githubusername = githubusername;
+      if(0) profileFields.githubusername = githubusername;
       if(skills) profileFields.skills = skills.split(',').map(skill => skill.trim());
 
       profileFields.location = {};
@@ -75,7 +76,21 @@ router.post('/',
       if(linkedin) profileFields.social.linkeding = linkedin;
       if(instagram) profileFields.social.instagram = instagram;
 
+      if(teams) profileFields.teams = teams.split(',').map(team => team.trim());
+
       try {
+        //check teams are exist
+        let badTeams = [];
+        for (const team of profileFields.teams) {
+          let actual = await Team.findOne({name: team}).exec();
+          if (!actual) badTeams.push(team);
+        }
+        if (badTeams.length > 0) {
+          response.status(400).json({errors: [{msg: "Teams do not exist with name: " + badTeams}]});
+          return;
+        }
+
+        // Check profile exists
         let profile = await Profile.findOne({user: request.user.id});
         if(profile){
           // Update
@@ -108,7 +123,7 @@ router.get('/', async (request, response) => {
     response.json(profiles);
   } catch (err) {
     console.error(err.message);
-    res.status(500).send('Server Error');
+    response.status(500).send('Server Error');
   }
 })
 
