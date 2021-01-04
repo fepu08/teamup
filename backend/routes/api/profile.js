@@ -5,9 +5,6 @@ const Profile = require('../../models/Profile');
 const User = require('../../models/User');
 const { check, validationResult } = require('express-validator');
 
-
-// if we want to protect a route, add auth as second parameter
-
 // @route   GET api/profile/me
 // @desc    Get current users profile
 // @access  Private
@@ -38,6 +35,7 @@ router.post('/',
         // if you have required fields you should check them here
         //like
         // check('name', 'Name is required').not().isEmpty()
+          check('skills', 'Skills are required').not().isEmpty()
       ]
     ],
     async (request, response) => {
@@ -50,6 +48,7 @@ router.post('/',
         address,
         city,
         country,
+        skills,
         githubusername,
         youtube,
         twitter,
@@ -62,6 +61,7 @@ router.post('/',
       const profileFields =  {};
       profileFields.user = request.user.id;
       if(githubusername) profileFields.githubusername = githubusername;
+      if(skills) profileFields.skills = skills.split(',').map(skill => skill.trim());
 
       profileFields.location = {};
       if(address) profileFields.location.address = address;

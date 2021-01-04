@@ -18,6 +18,10 @@ const ProfileSchema = new mongoose.Schema({
       }
     }
   ],
+  skills: {
+    type: [String],
+    required: true
+  },
   githubusername: {
     type: String,
     unique: true
