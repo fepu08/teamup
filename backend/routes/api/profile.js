@@ -43,7 +43,6 @@ router.post('/',
         return response.status(400).json({errors: errors.array()});
       }
 
-
       const {
         address,
         city,
@@ -86,8 +85,7 @@ router.post('/',
           if (!actual) badTeams.push(team);
         }
         if (badTeams.length > 0) {
-          response.status(400).json({errors: [{msg: "Teams do not exist with name: " + badTeams}]});
-          return;
+          return response.status(400).json({errors: [{msg: "Teams do not exist with name: " + badTeams}]});
         }
 
         // Check profile exists
@@ -102,7 +100,7 @@ router.post('/',
         } else {
           // Create
           let user = await User.findOne({ githubusername });
-          if(user) response.status(400).json({ errors: [{ msg: 'User already exists with this github username' }] });
+          if(user) return response.status(400).json({ errors: [{ msg: 'User already exists with this github username' }] });
           profile = new Profile(profileFields);
         }
         await profile.save();
