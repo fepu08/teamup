@@ -8,7 +8,7 @@ const jwt = require('jsonwebtoken');
 const config = require('config');
 
 // @route   GET api/auth
-// @desc    Test route
+// @desc    Get user by token
 // @access  Public
 // By adding auth as second parameter as a request method, make that route protected
 router.get('/', auth, async (request, response) => {
