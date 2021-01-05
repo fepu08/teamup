@@ -37,8 +37,10 @@ async (request, response) => {
     });
 
     user = new User({
-      first_name,
-      last_name,
+      name: {
+        first_name,
+        last_name,
+      },
       email,
       avatar,
       password

@@ -13,7 +13,12 @@ const PostSchema = new Schema({
     // if an user delete his account there's an option
     // to leave his comments
     name: {
-        type: String
+        first_name: {
+            type: String
+        },
+        last_name:{
+            type: String
+        }
     },
     avatar: {
         type: String
@@ -37,7 +42,12 @@ const PostSchema = new Schema({
                 required: true
             },
             name: {
-                type: String
+                first_name: {
+                    type: String
+                },
+                last_name:{
+                    type: String
+                }
             },
             avatar: {
                 type: String
