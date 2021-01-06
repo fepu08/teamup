@@ -77,4 +77,33 @@ router.post('/',
     }
 );
 
+
+// @route   DELETE api/teams/:team_id
+// @desc    Delete team
+// @access  Private
+router.delete('/:team_id', auth, async (req, res) => {
+        try {
+            const team = await Team.findById(req.params.team_id);
+            if(!team){
+                return res.status(400).json({ error: { msg: 'Team does not exist with this ID' } });
+            }
+
+            if (!isOwner(req, team)) {
+                return res.status(400).json({error: {msg: 'Only one of the team owners can delete the team'}});
+            }
+
+            //TODO: delete from everywhere inside Profile.teams
+            //TODO: delete every post
+            const posts = await Post.deleteMany({team: req.params.team_id});
+
+
+            await team.remove();
+            res.json({msg: 'Team removed'});
+        } catch (err) {
+            console.error(err.message);
+            res.status(500).send('Server Error');
+        }
+    }
+);
+
 module.exports = router;
