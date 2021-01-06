@@ -44,13 +44,16 @@ const ProfileSchema = new mongoose.Schema({
       type: String
     }
   },
-  teams: {
-    //FIXME: Should it be the name of teams or the id?
-    type:[String]
-    // it could be the name of the teams because those are unique
-    /*type: mongoose.Schema.Types.ObjectId,
-    ref: 'team'*/
-  },
+  teams: [
+    {
+      team_id: {
+        type: mongoose.Schema.Types.ObjectId,
+      },
+      name: {
+        type: String
+      }
+    }
+  ],
   date: {
     type: Date,
     default: Date.now
