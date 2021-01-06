@@ -37,4 +37,44 @@ router.get('/:team_id', auth, async (req, res) => {
     }
 })
 
+// @route   POST api/teams/
+// @desc    Create team
+// @access  Private
+router.post('/',
+    [
+        auth,
+        [
+            check('name', 'Name is required').not().isEmpty()
+        ]
+    ],
+    async (req, res) => {
+        const errors = validationResult(req);
+        if(!errors.isEmpty()){
+            return res.status(400).json({errors: errors.array()});
+        }
+
+        try {
+            const owner = await User.findById(req.user.id).select('-password');
+            const ownerProfile = await Profile.findOne({user: req.user.id});
+            let team = await Team.findOne({name: req.body.name});
+            if(team){
+                return res.status(400).json({ errors: [{ msg: 'Team already exists with this name' }] });
+            }
+            team = new Team({
+                name: req.body.name,
+                owners: {user: owner},
+                admins: {user: owner},
+                members: {user: owner}
+            });
+            await team.save();
+            ownerProfile.teams.unshift({team_id: team.id, name: req.body.name});
+            await ownerProfile.save();
+            res.json(team.id);
+        } catch (err) {
+            console.error(err.message);
+            res.status(500).send('Server Error');
+        }
+    }
+);
+
 module.exports = router;
