@@ -37,6 +37,7 @@ router.get('/:team_id', auth, async (req, res) => {
     }
 })
 
+
 // @route   POST api/teams/
 // @desc    Create team
 // @access  Private
@@ -115,6 +116,13 @@ router.put('/posts/add/:team_id/:post_id', auth, async (req, res) => {
         const team = await Team.findById(req.params.team_id);
         const post = await Post.findById(req.params.post_id);
 
+        if(!team) {
+            return res.status(404).json({msg: "Team not found"});
+        }
+        if(!post) {
+            return res.status(404).json({msg: "Post not found"});
+        }
+
         const checkResult = canUserAddThisPost(req, team, post)
         if(checkResult) {
             return res.status(400).send(checkResult);
@@ -132,6 +140,30 @@ router.put('/posts/add/:team_id/:post_id', auth, async (req, res) => {
     }
 });
 
+
+// @route   PUT api/teams/posts/remove/:team_id/:post_id
+// @desc    Remove post to team
+// @access  Private
+router.put('/posts/remove/:team_id/:post_id', auth, async (req, res) => {
+    try {
+        const team = await Team.findById(req.params.team_id);
+        const post = await Post.findById(req.params.post_id);
+
+        const checkResult = canUserDeleteThisPost(req, team, post);
+        if(checkResult) {
+            return res.status(400).send(checkResult);
+        }
+
+        const removeIndex = team.posts.map(post => post.post.toString()).indexOf(post.id);
+        team.posts.splice(removeIndex, 1);
+        await Post.findByIdAndDelete(req.params.post_id);
+        await team.save();
+        res.json(team.posts);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+});
 
 
 function canUserAddThisPost(req, team, post){
@@ -158,7 +190,7 @@ function isLoggedInUserAdmin(req, team){
     return team.admins.filter(admin => admin.user.toString() === req.user.id).length > 0;
 }
 
-function isAdmin(team, user){
+function isUserAdmin(team, user){
     return team.admins.filter(admin => admin.user.toString() === user.id).length > 0;
 }
 
