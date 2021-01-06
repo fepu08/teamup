@@ -20,4 +20,21 @@ router.get('/', auth, async (req, res) => {
     }
 })
 
+// @route   GET api/teams/:team_id
+// @desc    Get team by team ID
+// @access  Private
+router.get('/:team_id', auth, async (req, res) => {
+    try {
+        const team = await Team.findById(req.params.team_id);
+        if(!team) return res.status(400).json({ msg: 'Team not found'});
+        res.json(team);
+    } catch (err) {
+        console.error(err.message);
+        if(err.kind == 'ObjectId') {
+            return res.status(400).json({ msg: 'Profile not found'});
+        }
+        res.status(500).send('Server Error');
+    }
+})
+
 module.exports = router;
