@@ -1,20 +1,56 @@
 const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
 
-// Azért kell a schema, mert később a post id-ket is itt tároljuk
 const TeamSchema = new mongoose.Schema({
     name: {
         type: String,
         required: true,
         unique: true
     },
-    owner: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'user'
-    },
-    admins: {
-        type: [mongoose.Schema.Types.ObjectId],
-        ref: 'user'
-    },
+    posts: [
+        {
+            post: {
+                type: Schema.Types.ObjectId,
+                ref: 'post'
+            }
+        }
+    ],
+    owners: [
+        {
+            user: {
+                type: Schema.Types.ObjectId,
+                ref: 'user'
+            },
+            date: {
+                type: Date,
+                default: Date.now
+            }
+        }
+    ],
+    admins: [
+        {
+            user: {
+                type: Schema.Types.ObjectId,
+                ref: 'user'
+            },
+            date: {
+                type: Date,
+                default: Date.now
+            }
+        }
+    ],
+    members: [
+        {
+            user: {
+                type: Schema.Types.ObjectId,
+                ref: 'user'
+            },
+            date: {
+                type: Date,
+                default: Date.now
+            }
+        }
+    ],
     date: {
         type: Date,
         default: Date.now
