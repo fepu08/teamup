@@ -48,6 +48,7 @@ const ProfileSchema = new mongoose.Schema({
     {
       team_id: {
         type: mongoose.Schema.Types.ObjectId,
+        ref: 'team'
       },
       name: {
         type: String

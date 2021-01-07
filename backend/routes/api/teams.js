@@ -166,19 +166,23 @@ router.put('/posts/remove/:team_id/:post_id', auth, async (req, res) => {
 });
 
 
-// @route   PUT api/teams/member/:team_id/:user_id
+// @route   PUT api/teams/member/add/:team_id/:user_id
 // @desc    Add member
 // @access  Private
 router.put('/member/add/:team_id/:user_id', auth, async (req, res) => {
     try {
         const user = await User.findById(req.params.user_id).select('-password');
         const team = await Team.findById(req.params.team_id);
+        const profile = await Profile.findOne({user: req.params.user_id});
 
         if(!user) {
             return res.status(404).json({msg: "User does not exist with this ID"});
         }
         if(!team) {
             return res.status(404).json({msg: "Team does not exist with this ID"});
+        }
+        if(!profile) {
+            return res.status(404).json({msg: "This user has no profile"});
         }
 
 
@@ -192,14 +196,70 @@ router.put('/member/add/:team_id/:user_id', auth, async (req, res) => {
 
         team.members.push({user: user.id});
         await team.save();
+
+        // add team to user's profile
+        profile.teams.unshift({team_id: team.id, name: team.name});
+        await profile.save();
+
         return res.status(200).send(team.members);
     } catch(err) {
         console.error(err.message);
         res.status(500).send('Server Error');
     }
-})
+});
 
-//TODO: remove member
+
+// @route   PUT api/teams/member/remove/:team_id/:user_id
+// @desc    Remove member
+// @access  Private
+router.put('/member/remove/:team_id/:user_id', auth, async (req, res) => {
+    try {
+        const user = await User.findById(req.params.user_id).select('-password');
+        const team = await Team.findById(req.params.team_id);
+        const profile = await Profile.findOne({user: req.params.user_id});
+
+        if(!user) {
+            return res.status(404).json({msg: "User does not exist with this ID"});
+        }
+        if(!team) {
+            return res.status(404).json({msg: "Team does not exist with this ID"});
+        }
+        if(!profile) {
+            return res.status(404).json({msg: "This user has no profile"});
+        }
+
+        if(isUserOwner(team, user) && !isLoggedInUserOwner(req, team)){
+            return res.status(403).json({msg: "Access denied"});
+        }
+
+        const loggedInIsAdmin = isLoggedInUserAdmin(req, team);
+        if(!loggedInIsAdmin && user.id !== req.user.id) {
+            return res.status(403).json({msg: "Access denied"});
+        }
+
+        if(!isUserTeamMember(team, user)){
+            return res.status(400).json({msg: "User is not member of this team"});
+        }
+
+        // remove team team
+        let removeIndex = team.members.map(member => member.id).indexOf(user.id);
+        team.members.splice(removeIndex, 1);
+        await team.save();
+
+        // remove team from user's profile
+        removeIndex = profile.teams.map(team => team.team_id).indexOf(team.id);
+        profile.teams.splice(removeIndex, 1);
+        await profile.save();
+
+        if(loggedInIsAdmin) {
+            return res.status(200).json(team.members);
+        }
+        return res.status(200).send("User Removed Successfully");
+    } catch(err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+});
 
 //TODO: add owner
 //TODO: remove owner
@@ -235,6 +295,10 @@ function isUserAdmin(team, user){
     return team.admins.filter(admin => admin.user.toString() === user.id).length > 0;
 }
 
+function isUserOwner(team, user) {
+    return team.owners.filter(owner => owner.user.toString() === user.id).length > 0;
+}
+
 function postFromLoggedInUser(req, post){
     return post.user.id === req.user.id;
 }
@@ -243,8 +307,11 @@ function isLoggedInUserTeamMember(req, team){
     return team.members.filter(member => member.user.toString() === req.user.id).length > 0;
 }
 
+function isLoggedInUserOwner(req, team) {
+    return team.owners.filter(owner => owner.user.toString() === req.user.id).length > 0;
+}
+
 function isUserTeamMember(team, user) {
-    console.log(team.members.filter(member => member.user));
     return team.members.filter(member => member.user.toString() === user.id).length > 0;
 }
 
