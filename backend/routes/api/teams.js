@@ -517,7 +517,31 @@ router.put('/owners/remove/:team_id/:user_id', auth, async (req, res) => {
 });
 
 
-//TODO: is owner by id
+// @route   GET api/teams/owners/:team_id/:user_id
+// @desc    Get owner by user_id
+// @access  Private
+router.get('/owners/:team_id/:user_id', auth, async (req, res) => {
+    try {
+        const team = await Team.findById(req.params.team_id);
+        const user = await User.findById(req.params.user_id).select('-password');
+
+        if(!team) return res.status(404).json({ msg: 'Team not found'});
+        if(!user) return res.status(404).json({ msg: 'User not found'});
+
+        if(!isUserTeamMember(team, user)) return res.status(404).json({msg: 'User is not team member'});
+        if(!isUserOwner(team, user)) return res.status(404).json({msg: 'User is not owner'});
+
+        res.status(200).json({owner: user});
+    } catch (err) {
+        console.error(err.message);
+        if(err.kind === 'ObjectId') {
+            return res.status(400).json({ msg: 'Profile not found'});
+        }
+        res.status(500).send('Server Error');
+    }
+})
+
+
 //TODO: get owners
 
 
