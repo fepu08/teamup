@@ -428,12 +428,15 @@ router.get('/admins/:team_id/', auth, async (req, res) => {
 
         if(!team) return res.status(404).json({ msg: 'Team not found'});
 
-        if(!isUserTeamMember(team, user)) return res.status(404).json({msg: 'User is not team member'});
-
         const admins = [];
-        for(let i = 0; i < team.members.length; i++){
-            const user = await User.findById(team.members[i].user).select('-password');
-            if(user) admins.push(user);
+        for(let i = 0; i < team.admins.length; i++){
+            const user = await User.findById(team.admins[i].user).select('-password');
+            //if(user) members.push(user);
+            if(user) {
+                const profile = await Profile.findOne({user: user.id.toString()});
+                if(!profile) return res.status(404).json({ msg: 'Profile not found'});
+                admins.push(profile);
+            }
         }
 
         res.status(200).json({admins: admins});
