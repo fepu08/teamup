@@ -450,10 +450,45 @@ router.get('/admins/:team_id/', auth, async (req, res) => {
 })
 
 
-//TODO: add owner
+// @route   PUT api/teams/owners/add/:team_id/:user_id
+// @desc    Add owner
+// @access  Private
+router.put('/owners/add/:team_id/:user_id', auth, async (req, res) => {
+    try {
+        const user = await User.findById(req.params.user_id).select('-password');
+        const team = await Team.findById(req.params.team_id);
+
+        if(!user) {
+            return res.status(404).json({msg: "User does not exist with this ID"});
+        }
+        if(!team) {
+            return res.status(404).json({msg: "Team does not exist with this ID"});
+        }
+
+        if(!isLoggedInUserOwner(req, team)) {
+            return res.status(403).json({msg: "Access denied"});
+        }
+        if(!isUserTeamMember(team, user)){
+            return res.status(400).json({msg: "User must be a team member first!"});
+        }
+        if(isUserOwner(team, user)){
+            return res.status(400).json({msg: "User is already owner."});
+        }
+
+        team.owners.push({user: user.id});
+        await team.save();
+        return res.status(200).send(team.owners);
+    } catch(err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+});
+
+
 //TODO: remove owner
 //TODO: is owner by id
 //TODO: get owners
+
 
 function canUserAddThisPost(req, team, post){
     if (!isLoggedInUserTeamMember(req,team)) return "This user is not a member of this team.";
