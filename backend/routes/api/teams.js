@@ -268,6 +268,32 @@ router.put('/member/remove/:team_id/:user_id', auth, async (req, res) => {
 });
 
 
+// @route   GET api/teams/member/:team_id/:user_id
+// @desc    Get member by user_id
+// @access  Private
+router.get('/member/:team_id/user_id', auth, async (req, res) => {
+    try {
+        const team = await Team.findById(req.params.team_id);
+        const user = await User.findById(req.params.user_id);
+
+        if(!team) return res.status(404).json({ msg: 'Team not found'});
+        if(!user) return res.status(404).json({ msg: 'User not found'});
+
+        if(!isUserTeamMember(team, user)) return res.status(404).json({msg: 'User is not team member'});
+
+        res.status(200).json({member: user});
+    } catch (err) {
+        console.error(err.message);
+        if(err.kind === 'ObjectId') {
+            return res.status(400).json({ msg: 'Profile not found'});
+        }
+        res.status(500).send('Server Error');
+    }
+})
+
+//TODO: Get members
+
+
 // @route   PUT api/teams/admin/add/:team_id/:user_id
 // @desc    Add admin
 // @access  Private
