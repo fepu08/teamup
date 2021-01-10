@@ -172,7 +172,7 @@ router.put('/posts/remove/:team_id/:post_id', auth, async (req, res) => {
 });
 
 
-// @route   PUT api/teams/member/add/:team_id/:user_id
+// @route   PUT api/teams/members/add/:team_id/:user_id
 // @desc    Add member
 // @access  Private
 router.put('/member/add/:team_id/:user_id', auth, async (req, res) => {
@@ -215,10 +215,10 @@ router.put('/member/add/:team_id/:user_id', auth, async (req, res) => {
 });
 
 
-// @route   PUT api/teams/member/remove/:team_id/:user_id
+// @route   PUT api/teams/members/remove/:team_id/:user_id
 // @desc    Remove member
 // @access  Private
-router.put('/member/remove/:team_id/:user_id', auth, async (req, res) => {
+router.put('/members/remove/:team_id/:user_id', auth, async (req, res) => {
     try {
         const user = await User.findById(req.params.user_id).select('-password');
         const team = await Team.findById(req.params.team_id);
@@ -268,10 +268,10 @@ router.put('/member/remove/:team_id/:user_id', auth, async (req, res) => {
 });
 
 
-// @route   GET api/teams/member/:team_id/:user_id
+// @route   GET api/teams/members/:team_id/:user_id
 // @desc    Get member by user_id
 // @access  Private
-router.get('/member/:team_id/user_id', auth, async (req, res) => {
+router.get('/members/:team_id/user_id', auth, async (req, res) => {
     try {
         const team = await Team.findById(req.params.team_id);
         const user = await User.findById(req.params.user_id);
@@ -291,13 +291,31 @@ router.get('/member/:team_id/user_id', auth, async (req, res) => {
     }
 })
 
-//TODO: Get members
+
+// @route   GET api/teams/members/:team_id/
+// @desc    Get members
+// @access  Private
+router.get('/members/:team_id/', auth, async (req, res) => {
+    try {
+        const team = await Team.findById(req.params.team_id);
+
+        if(!team) return res.status(404).json({ msg: 'Team not found'});
+
+        res.status(200).json({members: team.members});
+    } catch (err) {
+        console.error(err.message);
+        if(err.kind === 'ObjectId') {
+            return res.status(400).json({ msg: 'Profile not found'});
+        }
+        res.status(500).send('Server Error');
+    }
+})
 
 
-// @route   PUT api/teams/admin/add/:team_id/:user_id
+// @route   PUT api/teams/admins/add/:team_id/:user_id
 // @desc    Add admin
 // @access  Private
-router.put('/admin/add/:team_id/:user_id', auth, async (req, res) => {
+router.put('/admins/add/:team_id/:user_id', auth, async (req, res) => {
     try {
         const user = await User.findById(req.params.user_id).select('-password');
         const team = await Team.findById(req.params.team_id);
@@ -328,10 +346,10 @@ router.put('/admin/add/:team_id/:user_id', auth, async (req, res) => {
     }
 });
 
-// @route   PUT api/teams/admin/remove/:team_id/:user_id
+// @route   PUT api/teams/admins/remove/:team_id/:user_id
 // @desc    Remove admin
 // @access  Private
-router.put('/admin/remove/:team_id/:user_id', auth, async (req, res) => {
+router.put('/admins/remove/:team_id/:user_id', auth, async (req, res) => {
     try {
         const user = await User.findById(req.params.user_id).select('-password');
         const team = await Team.findById(req.params.team_id);
