@@ -484,8 +484,39 @@ router.put('/owners/add/:team_id/:user_id', auth, async (req, res) => {
     }
 });
 
+// @route   PUT api/teams/owners/remove/:team_id/:user_id
+// @desc    Remove admin
+// @access  Private
+router.put('/owners/remove/:team_id/:user_id', auth, async (req, res) => {
+    try {
+        const user = await User.findById(req.params.user_id).select('-password');
+        const team = await Team.findById(req.params.team_id);
 
-//TODO: remove owner
+        if(!user) {
+            return res.status(404).json({msg: "User does not exist with this ID"});
+        }
+        if(!team) {
+            return res.status(404).json({msg: "Team does not exist with this ID"});
+        }
+
+        if(isUserOwner(team, user) && !isLoggedInUserOwner(req, team)){
+            return res.status(403).json({msg: "Access denied"});
+        }
+        if(!isUserOwner(team, user)){
+            return res.status(400).json({msg: "User is not owner"});
+        }
+
+        let removeIndex = team.owners.map(owner => owner.id).indexOf(user.id);
+        team.owners.splice(removeIndex, 1);
+        await team.save();
+        return res.status(200).json(team.owners);
+    } catch(err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+});
+
+
 //TODO: is owner by id
 //TODO: get owners
 
