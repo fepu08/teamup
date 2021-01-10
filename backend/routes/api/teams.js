@@ -542,7 +542,35 @@ router.get('/owners/:team_id/:user_id', auth, async (req, res) => {
 })
 
 
-//TODO: get owners
+// @route   GET api/teams/owners/:team_id/
+// @desc    Get owners
+// @access  Private
+router.get('/owners/:team_id/', auth, async (req, res) => {
+    try {
+        const team = await Team.findById(req.params.team_id);
+
+        if(!team) return res.status(404).json({ msg: 'Team not found'});
+
+        const owners = [];
+        for(let i = 0; i < team.owners.length; i++){
+            const user = await User.findById(team.owners[i].user).select('-password');
+            //if(user) members.push(user);
+            if(user) {
+                const profile = await Profile.findOne({user: user.id.toString()});
+                if(!profile) return res.status(404).json({ msg: 'Profile not found'});
+                owners.push(profile);
+            }
+        }
+
+        res.status(200).json({owners: owners});
+    } catch (err) {
+        console.error(err.message);
+        if(err.kind === 'ObjectId') {
+            return res.status(400).json({ msg: 'Profile not found'});
+        }
+        res.status(500).send('Server Error');
+    }
+})
 
 
 function canUserAddThisPost(req, team, post){
