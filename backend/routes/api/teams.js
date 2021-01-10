@@ -301,7 +301,13 @@ router.get('/members/:team_id/', auth, async (req, res) => {
 
         if(!team) return res.status(404).json({ msg: 'Team not found'});
 
-        res.status(200).json({members: team.members});
+        const members = [];
+        for(let i = 0; i < team.members.length; i++){
+            const user = await User.findById(team.members[i].user).select('-password');
+            if(user) members.push(user);
+        }
+
+        res.status(200).json({members: members});
     } catch (err) {
         console.error(err.message);
         if(err.kind === 'ObjectId') {
@@ -408,7 +414,29 @@ router.get('/admins/:team_id/:user_id', auth, async (req, res) => {
 })
 
 
-//TODO: get admins
+// @route   GET api/teams/admins/:team_id/
+// @desc    Get admins
+// @access  Private
+router.get('/admins/:team_id/', auth, async (req, res) => {
+    try {
+        const team = await Team.findById(req.params.team_id);
+
+        if(!team) return res.status(404).json({ msg: 'Team not found'});
+
+        if(!isUserTeamMember(team, user)) return res.status(404).json({msg: 'User is not team member'});
+
+        const admins = await User.find({})
+
+        res.status(200).json({admin: user});
+    } catch (err) {
+        console.error(err.message);
+        if(err.kind === 'ObjectId') {
+            return res.status(400).json({ msg: 'Profile not found'});
+        }
+        res.status(500).send('Server Error');
+    }
+})
+
 
 //TODO: add owner
 //TODO: remove owner
