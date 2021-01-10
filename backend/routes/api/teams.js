@@ -94,9 +94,15 @@ router.delete('/:team_id', auth, async (req, res) => {
             }
 
             //TODO: delete from everywhere inside Profile.teams
-            //TODO: delete every post
-            const posts = await Post.deleteMany({team: req.params.team_id});
+            //team.members.map(async (member) => {
+            //    const profile = await Profile.findById(member.id);
+            //    const removeIndex = profile.teams.map(team => team.team_id).indexOf(team.id);
+            //    profile.teams.splice(removeIndex, 1);
+            //    await profile.save();
+            //});
 
+            // Remove posts contained by team
+            const posts = await Post.deleteMany({team: req.params.team_id});
 
             await team.remove();
             res.json({msg: 'Team removed'});
@@ -241,7 +247,7 @@ router.put('/member/remove/:team_id/:user_id', auth, async (req, res) => {
             return res.status(400).json({msg: "User is not member of this team"});
         }
 
-        // remove team team
+        // remove team from members profile
         let removeIndex = team.members.map(member => member.id).indexOf(user.id);
         team.members.splice(removeIndex, 1);
         await team.save();
@@ -261,11 +267,52 @@ router.put('/member/remove/:team_id/:user_id', auth, async (req, res) => {
     }
 });
 
+
+// @route   PUT api/teams/admin/add/:team_id/:user_id
+// @desc    Add admin
+// @access  Private
+router.put('/admin/add/:team_id/:user_id', auth, async (req, res) => {
+    try {
+        const user = await User.findById(req.params.user_id).select('-password');
+        const team = await Team.findById(req.params.team_id);
+
+        if(!user) {
+            return res.status(404).json({msg: "User does not exist with this ID"});
+        }
+        if(!team) {
+            return res.status(404).json({msg: "Team does not exist with this ID"});
+        }
+
+        if(!isLoggedInUserAdmin(req, team)) {
+            return res.status(403).json({msg: "Access denied"});
+        }
+
+        if(!isUserTeamMember(team, user)){
+            return res.status(400).json({msg: "User must be a team member first!"});
+        }
+
+        if(isUserAdmin(team, user)){
+            return res.status(400).json({msg: "User is already admin."});
+        }
+
+        team.admins.push({user: user.id});
+        await team.save();
+        return res.status(200).send(team.admins);
+    } catch(err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+});
+
+
+//TODO: remove admin
+//TODO: is admin
+//TODO: get admins
+
 //TODO: add owner
 //TODO: remove owner
-
-//TODO: add admin
-//TODO: remove admin
+//TODO: is owner
+//TODO: get owners
 
 function canUserAddThisPost(req, team, post){
     if (!isLoggedInUserTeamMember(req,team)) return "This user is not a member of this team.";
