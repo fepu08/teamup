@@ -1,4 +1,0 @@
-{
-  "mongoURI": "mongodb+srv://root:root@h-v-k-webprog4.drz8i.mongodb.net/hivok-web4-beadando?retryWrites=true&w=majority",
-  "jwtSecret": "topsecrettoken"
-}

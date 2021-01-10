@@ -58,7 +58,7 @@ async (request, response) => {
       payload, 
       config.get('jwtSecret'),
         //FIXME: set expiresIn:3600 in product
-      {expiresIn: 360000},
+      {expiresIn: 360000000},
       (err, token) => {
         if(err) throw err;
         response.json({token});
