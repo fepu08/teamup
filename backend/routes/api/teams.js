@@ -304,7 +304,12 @@ router.get('/members/:team_id/', auth, async (req, res) => {
         const members = [];
         for(let i = 0; i < team.members.length; i++){
             const user = await User.findById(team.members[i].user).select('-password');
-            if(user) members.push(user);
+            //if(user) members.push(user);
+            if(user) {
+                const profile = await Profile.findOne({user: user.id.toString()});
+                if(!profile) return res.status(404).json({ msg: 'Profile not found'});
+                members.push(profile);
+            }
         }
 
         res.status(200).json({members: members});
@@ -425,9 +430,13 @@ router.get('/admins/:team_id/', auth, async (req, res) => {
 
         if(!isUserTeamMember(team, user)) return res.status(404).json({msg: 'User is not team member'});
 
-        const admins = await User.find({})
+        const admins = [];
+        for(let i = 0; i < team.members.length; i++){
+            const user = await User.findById(team.members[i].user).select('-password');
+            if(user) admins.push(user);
+        }
 
-        res.status(200).json({admin: user});
+        res.status(200).json({admins: admins});
     } catch (err) {
         console.error(err.message);
         if(err.kind === 'ObjectId') {
