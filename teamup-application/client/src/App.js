@@ -1,21 +1,27 @@
 import './styles/globals.scss'
 import {Fragment} from "react";
+import { BrowserRouter as Router, Route, Switch} from "react-router-dom";
 import Navbar from "./components/layout/Navbar";
 import Footer from "./components/layout/Footer";
+import Landing from "./components/layout/Landing"
+import Login from "./components/auth/Login";
+import Register from "./components/auth/Register";
 
 function App({ Component, pageProps }) {
     return (
-        <Fragment>
-            <Navbar/>
-            <div className={"container"}>
-                <div className={"row"}>
-                    <div className={"col-md-6 col-lg-2"}>Some content 1</div>
-                    <div className={"col-md-6 col-lg-2"}>Some content 2</div>
-                    <div className={"col-md-6 col-lg-2"}>Some content 3</div>
+        <Router>
+            <Fragment>
+                <Navbar/>
+                <div className={"container"}>
+                    <Switch>
+                        <Route exact path={"/"} component={Landing}/>
+                        <Route exact path={"/login"} component={Login}/>
+                        <Route exact path={"/register"} component={Register}/>
+                    </Switch>
                 </div>
-            </div>
-            <Footer/>
-        </Fragment>
+                <Footer/>
+            </Fragment>
+        </Router>
     )
 }
 export default App
