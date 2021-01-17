@@ -8,7 +8,11 @@ const Navbar = ({auth: {isAuthenticated , loading}, logout}) => {
     const authLinks = (
         <Fragment>
             <div className={"navbar-nav"}>
-                <Link className={"nav-item nav-link"} to={"/dashboard"}>Dashboard</Link>
+                <Link 
+                    className={"nav-item nav-link"} 
+                    to={"/dashboard"}>
+                    <i className={'fas fa-user'}/>
+                    <span className={'d-sm-none d-md-inline'}> Dashboard</span></Link>
                 <Link className={"nav-item nav-link"} to={"/profile"}>Profile</Link>
                 <Link className={"nav-item nav-link"} to={"/teams"}>Teams</Link>
             </div>
