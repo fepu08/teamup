@@ -5,7 +5,7 @@ const ProfileSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'user'
   },
-  location: [
+  location:
     {
       address: {
         type: String
@@ -16,8 +16,7 @@ const ProfileSchema = new mongoose.Schema({
       country: {
         type: String
       }
-    }
-  ],
+    },
   skills: {
     type: [String],
     required: true

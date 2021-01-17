@@ -1,11 +1,11 @@
-import React, {Fragment, useState} from 'react';
+import React, {Fragment, useState, useEffect} from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import {Row, Button, Col, Form, FormGroup} from "react-bootstrap";
 import {Link, withRouter} from "react-router-dom";
-import {createProfile} from "../../actions/profile";
+import {createProfile, getCurrentProfile} from "../../actions/profile";
 
-const CreateProfile = ({createProfile, history}) => {
+const EditProfile = ({profile: {profile, loading}, createProfile, getCurrentProfile, history}) => {
     const [formData, setFormData] = useState({
         address: '',
         city: '',
@@ -32,17 +32,32 @@ const CreateProfile = ({createProfile, history}) => {
 
     const [displaySocialInputs, toggleSocialInputs] = useState(false);
 
+    useEffect(() => {
+        getCurrentProfile();
+        setFormData({
+            address: loading || !profile.location.address ? '' : profile.location.address,
+            city: loading || !profile.location.city ? '' : profile.location.city,
+            country: loading || !profile.location.country ? '' : profile.location.country,
+            skills: loading || !profile.skills ? '' : profile.skills.join(','),
+            githubusername: loading || !profile.githubusername ? '' : profile.githubusername,
+            twitter: loading || !profile.social.twitter ? '' : profile.social.twitter,
+            facebook: loading || !profile.social.facebook ? '' : profile.social.facebook,
+            linkedin: loading || !profile.social.linkedin ? '' : profile.social.linkedin,
+            instagram:loading || !profile.social.instagram ? '' : profile.social.instagram
+        });
+    }, [loading]);
+
     const onChange = e =>
         setFormData({ ...formData, [e.target.name]: e.target.value });
 
     const onSubmit = e => {
         e.preventDefault();
-        createProfile(formData, history);
+        createProfile(formData, history, true);
     };
 
     return (
         <Col className={"col-sm-12 col-lg-8 mx-auto"}>
-            <h1>Create Your Profile</h1>
+            <h1>Edit Your Profile</h1>
             <p className={"lead"}>
                 <i className={"fas fa-user"}/> Let's get some information to make your profile stand out
             </p>
@@ -118,20 +133,20 @@ const CreateProfile = ({createProfile, history}) => {
 
                 {displaySocialInputs && (
                     <Fragment>
-                            <FormGroup as={Row} className="social-input mt-3">
-                                <Form.Label column sm={"1"}>
-                                    <i className="fab fa-twitter fa-2x text-primary" />
-                                </Form.Label>
-                                <Col sm={"11"}>
-                                    <Form.Control
-                                        type="text"
-                                        placeholder="Twitter URL"
-                                        name="twitter"
-                                        value={twitter}
-                                        onChange={e => onChange(e)}
-                                    />
-                                </Col>
-                            </FormGroup>
+                        <FormGroup as={Row} className="social-input mt-3">
+                            <Form.Label column sm={"1"}>
+                                <i className="fab fa-twitter fa-2x text-primary" />
+                            </Form.Label>
+                            <Col sm={"11"}>
+                                <Form.Control
+                                    type="text"
+                                    placeholder="Twitter URL"
+                                    name="twitter"
+                                    value={twitter}
+                                    onChange={e => onChange(e)}
+                                />
+                            </Col>
+                        </FormGroup>
 
                         <FormGroup as={Row} className="social-input">
                             <Form.Label column sm={"1"}>
@@ -149,9 +164,9 @@ const CreateProfile = ({createProfile, history}) => {
                         </FormGroup>
 
                         <FormGroup as={Row} className="social-input">
-                             <Form.Label column sm={"1"}>
-                                 <i className="fab fa-linkedin fa-2x mr-2 text-primary"/>
-                             </Form.Label>
+                            <Form.Label column sm={"1"}>
+                                <i className="fab fa-linkedin fa-2x mr-2 text-primary"/>
+                            </Form.Label>
                             <Col sm={"11"}>
                                 <Form.Control
                                     type="text"
@@ -189,12 +204,15 @@ const CreateProfile = ({createProfile, history}) => {
     )
 }
 
-CreateProfile.propTypes = {
-    createProfile: PropTypes.func.isRequired
+EditProfile.propTypes = {
+    createProfile: PropTypes.func.isRequired,
+    profile: PropTypes.object.isRequired,
+    getCurrentProfile: PropTypes.func.isRequired
 }
 
 const mapStateToProps = state => ({
-   isAuthenticated: state.auth.isAuthenticated,
+    isAuthenticated: state.auth.isAuthenticated,
+    profile: state.profile
 });
 
-export default connect(mapStateToProps, {createProfile})(withRouter(CreateProfile));
+export default connect(mapStateToProps, {createProfile, getCurrentProfile})(withRouter(EditProfile));
