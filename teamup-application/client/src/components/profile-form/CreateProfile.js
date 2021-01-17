@@ -2,9 +2,10 @@ import React, {Fragment, useState} from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import {Row, Button, Col, Form, FormGroup} from "react-bootstrap";
-import {Link} from "react-router-dom";
+import {Link, withRouter} from "react-router-dom";
+import {createProfile} from "../../actions/profile";
 
-const CreateProfile = props => {
+const CreateProfile = ({createProfile, history}) => {
     const [formData, setFormData] = useState({
         address: '',
         city: '',
@@ -36,7 +37,7 @@ const CreateProfile = props => {
 
     const onSubmit = e => {
         e.preventDefault();
-       // createProfile(formData, history, profile ? true : false);
+        createProfile(formData, history);
     };
 
     return (
@@ -46,7 +47,7 @@ const CreateProfile = props => {
                 <i className={"fas fa-user"}/> Let's get some information to make your profile stand out
             </p>
             <small>* = required field</small>
-            <Form>
+            <Form onSubmit={e => onSubmit(e)}>
                 <Form.Group>
                     <Form.Control
                         type={"text"}
@@ -189,7 +190,11 @@ const CreateProfile = props => {
 }
 
 CreateProfile.propTypes = {
-
+    createProfile: PropTypes.func.isRequired
 }
 
-export default connect()(CreateProfile);
+const mapStateToProps = state => ({
+   isAuthenticated: state.auth.isAuthenticated,
+});
+
+export default connect(mapStateToProps, {createProfile})(withRouter(CreateProfile));
