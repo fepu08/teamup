@@ -1,3 +1,7 @@
+# TeamUp
+## Description
+### Node.js backend with React frontend
+
 # Leírás
 ### Csapat menedzsment
 pulbikus oldal:
